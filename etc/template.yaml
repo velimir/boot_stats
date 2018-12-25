@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: >-
+  Produces AWS Lambda boot stats from logs
+
+
+Resources:
+  # this could've been moved to a dedicated stack, but to make deployment easier
+  # (and don't waste time) those 2 functions are different only in names and
+  # value for environment variable - MODE
+  BootStatsGeneratorInteractive:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: boot_stats
+      CodeUri: ../_build/prod/rel/boot_stats-1.0.0.zip
+      Description: >-
+        Produces AWS Lambda boot stats from logs
+      Runtime: provided
+      MemorySize: 256
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: StatsTable
+          MODE: interactive
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref StatsTable
+      Events:
+        AWSLambdaLogs:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt LogStreamInteractive.Arn
+            StartingPosition: TRIM_HORIZON
+
+  BootStatsGeneratorEmbedded:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: boot_stats
+      CodeUri: ../_build/prod/rel/boot_stats-1.0.0.zip
+      Description: >-
+        Produces AWS Lambda boot stats from logs
+      Runtime: provided
+      MemorySize: 256
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: StatsTable
+          MODE: embedded
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref StatsTable
+      Events:
+        AWSLambdaLogs:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt LogStreamEmbedded.Arn
+            StartingPosition: TRIM_HORIZON
+
+  LogStreamInteractive:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 1
+
+  LogStreamEmbedded:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 1
+
+  StatsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+Outputs:
+  LogStreamEmbedded:
+    Description: Kinesis stream for logs from functions deployed in embedded mode
+    Value: !GetAtt LogStreamEmbedded.Arn
+
+  LogStreamInteractive:
+    Description: Kinesis stream for logs from functions deployed in interactive mode
+    Value: !GetAtt LogStreamInteractive.Arn
+
+  StatsTable:
+    Description: Table with call stats
+    Value: !Ref StatsTable

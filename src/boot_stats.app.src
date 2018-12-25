@@ -1,0 +1,15 @@
+{application, boot_stats,
+ [{description, "erllambda function - boot_stats"},
+  {vsn, "git"},
+  {registered, []},
+  {applications,
+   [kernel,
+    stdlib,
+    erllambda,
+    erlcloud]},
+  {env,[]},
+  {modules, []},
+  {maintainers, []},
+  {licenses, []},
+  {links, []}
+ ]}.
