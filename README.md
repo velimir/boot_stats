@@ -38,4 +38,4 @@ You can use `dump_table.py` script to export table in CSV format:
 
     ./etc/dump_table.py boot-stats-StatsTable-1C1QDZ2L4ZYMQ > ./etc/stats.csv
 
-For further analysis you can use [jupyter notebook](etc/execution time.ipynb) to load and visualise exported data
+For further analysis you can use [jupyter notebook](etc/execution%20time.ipynb) to load and visualise exported data
